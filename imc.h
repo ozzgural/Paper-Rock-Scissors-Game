@@ -16,7 +16,6 @@ typedef enum {
 	COMPUTER_WIN,
 } Match_Result;
 
-
 class User {
 public:
 	// deleted the copy costractor, because there should be only one user.
@@ -36,17 +35,27 @@ public:
 	}
 
 	std::string GetUserInput() {
-		std::cout << "Enter 1 to play Rock, 2 to play Paper, and 3 to play Scissors!: ";
-		getline(std::cin, Get().m_SUserMove);
+		std::string input;
+		std::cout << "Enter 1 to play Rock, 2 to play Paper, and 3 to play Scissors: ";
 
+		getline(std::cin, input);
+
+		while (!(input == "1" || input == "2" || input == "3"))
+		{
+			std::cout << "Unknown command: Please try again" << std::endl;
+			std::cout << "Enter 1 to play Rock, 2 to play Paper, and 3 to play Scissors: ";
+			getline(std::cin, input);
+			
+		}
+		Get().m_SUserMoveStr = input;
 		// Convert the user move from a string to an integer
-		m_userMove = std::stoi(m_SUserMove);
+		m_UserMove = std::stoi(m_SUserMoveStr);
 		
-		return m_SUserMove;
+		return m_SUserMoveStr;
 	}
 
-	std::string GetUserMove() {
-		return m_SUserMove;
+	int GetUserMove() {
+		return m_UserMove;
 	}
 
 	void PlayAgainCheck() {
@@ -54,22 +63,24 @@ public:
 		std::cout << "Play again? [y/n]: ";
 		getline(std::cin, playAgain);
 
-		if (!(playAgain == "y" || playAgain == "n"))
+		while (!(playAgain == "y" || playAgain == "n"))
 		{
 			std::cout << "Unknown command! Please try again" << std::endl;
 			std::cout << "Play again? [y/n]: ";
+			getline(std::cin, playAgain);
 		}
 
-		if (playAgain == "n")
+		if (playAgain == "n") {
 			m_IsPlaying = false;
+		}
 	}
 
 private:
-	std::string m_SUserMove;
+	std::string m_SUserMoveStr;
 	bool m_IsPlaying;
-	int m_userMove;
+	int m_UserMove;
 
-	User() : m_IsPlaying{ false } {}
+	User() : m_SUserMoveStr{ "" }, m_IsPlaying{ false } , m_UserMove{ 0 }{}
 };
 
 class GameTable {
@@ -105,38 +116,50 @@ public:
 	void TurnResults() {
 		GameTable::Get().GetRandomInt();
 
-		result = userMove - compMove;
+		int userMove = User::Get().GetUserMove();
 
-		if (result == 0)
-			std::cout << "Tie game!" << std::endl;
-		else if (result == 1 || result == -2)
+		std::cout << "Your move: " << moves[userMove]
+			<< " // Computer's move: " << moves[compMove] << std::endl;
+
+
+		if (userMove == compMove)
+			std::cout << "Tie game" << std::endl;
+		else if (userMove == 1 && compMove == 3)
 		{
-			std::cout << "Congratulations, you won!" << std::endl;
+			std::cout << "Congratulations, you won" << std::endl;
+			playerWins++;
+		}
+		else if (userMove == 2 && compMove == 1)
+		{
+			std::cout << "Congratulations, you won" << std::endl;
+			playerWins++;
+		}
+		else if (userMove == 3 && compMove == 2)
+		{
+			std::cout << "You won" << std::endl;
 			playerWins++;
 		}
 		else
 		{
-			std::cout << "Sorry, you lost!" << std::endl;
+			std::cout << "You lost" << std::endl;
 			compWins++;
 		}
 	}
 
 private:
 	std::unordered_map<int, std::string> moves;
-	int playerWins, compWins, compMove, userMove, result;
+	int playerWins, compWins, compMove, userMove;
 
 	GameTable() : moves{ {1, "Rock"}, {2, "Paper"}, {3, "Scissors"} },
-		playerWins{ 0 }, compWins { 0 }, compMove{ 0 }, userMove{ 0 }, result{ 0 } {}
+		playerWins{ 0 }, compWins { 0 }, compMove{ 0 }, userMove{ 0 } {}
 
 	void IOverallResults() {
-		std::cout << "Your move: " << moves[userMove] << " // Computer's move: " << moves[compMove] << std::endl;
+
 		std::cout << "Player: " << playerWins << " | Computer: " << compWins << std::endl;
 	}
 
 	void IGameLobby() {
 		std::cout << "--- Welcome to the Paper-Rock-Scissors Game ---\n";
-		std::cout << "--- Press any key to start a new game ---";
-		std::cin.get();
 		StartNewGame();
 	}
 };
