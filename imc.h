@@ -10,15 +10,9 @@
 #include <unordered_map>
 
 
-typedef enum {
-	PLAYER_WIN,
-	TIE,
-	COMPUTER_WIN,
-} Match_Result;
-
 class User {
 public:
-	// deleted the copy costractor, because there should be only one user.
+	// deleted the copy constructor, because there should be only one user.
 	User(const User&) = delete;
 
 	static User& Get() {
@@ -26,7 +20,7 @@ public:
 		return instance;
 	}
 
-	bool IsPlaying() {
+	bool IsPlaying() const {
 		return m_IsPlaying;
 	}
 
@@ -54,7 +48,7 @@ public:
 		return m_SUserMoveStr;
 	}
 
-	int GetUserMove() {
+	int GetUserMove() const {
 		return m_UserMove;
 	}
 
@@ -80,12 +74,12 @@ private:
 	bool m_IsPlaying;
 	int m_UserMove;
 
-	User() : m_SUserMoveStr{ "" }, m_IsPlaying{ false } , m_UserMove{ 0 }{}
+	User() :  m_IsPlaying{ false } , m_UserMove{ 0 }{}
 };
 
 class GameTable {
 public: 
-	// deleted the copy costractor, because GameTable is Singleton
+	// deleted the copy constructor, because GameTable is Singleton
 	GameTable(const GameTable&) = delete; 
 
 	static GameTable& Get() {
@@ -97,24 +91,24 @@ public:
 		return IOverallResults();
 	}
 
-	void GameLobby() {
+	static void GameLobby() {
 		return IGameLobby();
 	}
 
-	void StartNewGame() {
+	static void StartNewGame() {
 		User::Get().SetPlaying(true);
 	}
 
-	void GetRandomInt() {
+	static void GetRandomInt() {
 		std::random_device rd; // obtain a random number from hardware
 		std::mt19937 eng(rd()); // seed the generator
-		std::uniform_int_distribution<> distr(1, 3); // define the range
+		std::uniform_int_distribution<> uniformIntDistribution(1, 3); // define the range
 		// Create random integer in range [1,3] to simulate the computer selecting a move
-		Get().compMove = distr(eng);
+		Get().compMove = uniformIntDistribution(eng);
 	}
 
 	void TurnResults() {
-		GameTable::Get().GetRandomInt();
+		GetRandomInt();
 
 		int userMove = User::Get().GetUserMove();
 
@@ -122,21 +116,14 @@ public:
 			<< " // Computer's move: " << moves[compMove] << std::endl;
 
 
-		if (userMove == compMove)
-			std::cout << "Tie game" << std::endl;
-		else if (userMove == 1 && compMove == 3)
+		if (userMove == compMove) {
+            std::cout << "Tie game" << std::endl;
+        }
+		else if ((userMove == 1 && compMove == 3) ||
+                 (userMove == 2 && compMove == 1) ||
+                 (userMove == 3 && compMove == 2))
 		{
 			std::cout << "Congratulations, you won" << std::endl;
-			playerWins++;
-		}
-		else if (userMove == 2 && compMove == 1)
-		{
-			std::cout << "Congratulations, you won" << std::endl;
-			playerWins++;
-		}
-		else if (userMove == 3 && compMove == 2)
-		{
-			std::cout << "You won" << std::endl;
 			playerWins++;
 		}
 		else
@@ -148,17 +135,17 @@ public:
 
 private:
 	std::unordered_map<int, std::string> moves;
-	int playerWins, compWins, compMove, userMove;
+	int playerWins, compWins, compMove;
 
 	GameTable() : moves{ {1, "Rock"}, {2, "Paper"}, {3, "Scissors"} },
-		playerWins{ 0 }, compWins { 0 }, compMove{ 0 }, userMove{ 0 } {}
+		playerWins{ 0 }, compWins { 0 }, compMove{ 0 } {}
 
-	void IOverallResults() {
+	void IOverallResults() const {
 
 		std::cout << "Player: " << playerWins << " | Computer: " << compWins << std::endl;
 	}
 
-	void IGameLobby() {
+	static void IGameLobby() {
 		std::cout << "--- Welcome to the Paper-Rock-Scissors Game ---\n";
 		StartNewGame();
 	}
